@@ -9,6 +9,9 @@ let spawnInterval = 1500; // ms cinsinden yiyeceklerin düşme sıklığı
 let lastSpawnTime = 0;
 let gameSpeed = 1;
 
+// Pause kontrolü
+let gamePaused = false;
+
 // Karakter ifadeleri
 const EXPRESSIONS = {
     NORMAL: 'normal',
@@ -73,6 +76,10 @@ function startGame() {
     lastSpawnTime = 0;
     gameSpeed = 1;
     
+    // Pause durumunu sıfırla
+    gamePaused = false;
+    document.getElementById('pause-screen').style.display = 'none';
+    
     // Yıldızları ve ilerleme çubuğunu sıfırla
     updateProgressBar(0);
     updateStars(0);
@@ -95,6 +102,40 @@ function startGame() {
     requestAnimationFrame(gameLoop);
 }
 
+// Pause ve resume işlevleri
+function pauseGame() {
+    if (gameRunning && !gamePaused) {
+        gamePaused = true;
+        document.getElementById('pause-screen').style.display = 'flex';
+    }
+}
+
+function resumeGame() {
+    if (gameRunning && gamePaused) {
+        gamePaused = false;
+        document.getElementById('pause-screen').style.display = 'none';
+        
+        // Oyun döngüsünü yeniden başlat - son zamanı sıfırla ki animasyonlar düzgün çalışsın
+        lastTime = performance.now();
+        requestAnimationFrame(gameLoop);
+    }
+}
+
+// Pause ve resume butonlarını dinle
+document.getElementById('pause-button').addEventListener('click', pauseGame);
+document.getElementById('resume-button').addEventListener('click', resumeGame);
+
+// ESC tuşu ile de oyunu duraklatma
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' || e.keyCode === 27) {
+        if (gamePaused) {
+            resumeGame();
+        } else {
+            pauseGame();
+        }
+    }
+});
+
 function resizeCanvas() {
     const container = canvas.parentElement;
     canvas.width = container.clientWidth;
@@ -107,7 +148,8 @@ function resizeCanvas() {
 }
 
 function moveCharacter(e) {
-    if (!gameRunning) return;
+    // Oyun duraklatılmışsa fare hareketini göz ardı et
+    if (!gameRunning || gamePaused) return;
     
     const rect = canvas.getBoundingClientRect();
     character.x = e.clientX - rect.left - character.width / 2;
@@ -118,7 +160,8 @@ function moveCharacter(e) {
 }
 
 function moveCharacterTouch(e) {
-    if (!gameRunning) return;
+    // Oyun duraklatılmışsa dokunma hareketini göz ardı et
+    if (!gameRunning || gamePaused) return;
     e.preventDefault();
     
     if (e.touches.length > 0) {
@@ -719,6 +762,9 @@ function drawFoodItem(item) {
 
 function gameLoop(timestamp) {
     if (!gameRunning) return;
+    
+    // Oyun duraklatılmışsa döngüyü durdur
+    if (gamePaused) return;
     
     const deltaTime = timestamp - lastTime;
     lastTime = timestamp;
