@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Sağlık Avcıları</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="start-screen">
+            <h1>Sağlık Avcıları</h1>
+            <p>Sağlıklı yiyecekleri yiyerek puan kazan!</p>
+            <p class="instructions">Dikkat! Zararlı yiyeceklerden kaçın. <span class="bad-food">(Kırmızı çarpı işareti olanlar)</span></p>
+            <p class="instructions">Karakteri hareket ettirerek yiyecekleri yakala.</p>
+            <button id="start-button">BAŞLA</button>
+        </div>
+        
+        <div id="game-screen" style="display:none;">
+            <div id="score">Puan: 0</div>
+            
+            <!-- İlerleme çubuğu ve yıldız sistemi -->
+            <div id="progress-container">
+                <div id="progress-bar">
+                    <div id="progress-fill"></div>
+                </div>
+                <div id="stars">
+                    <div class="star" id="star1">★</div>
+                    <div class="star" id="star2">★</div>
+                    <div class="star" id="star3">★</div>
+                </div>
+            </div>
+            
+            <canvas id="game-canvas"></canvas>
+        </div>
+        
+        <div id="game-over-screen" style="display:none;">
+            <h1>Oyun Bitti!</h1>
+            <p>Puanın: <span id="final-score">0</span></p>
+            <div id="final-stars">
+                <div class="star" id="final-star1">★</div>
+                <div class="star" id="final-star2">★</div>
+                <div class="star" id="final-star3">★</div>
+            </div>
+            <button id="play-again-button">TEKRAR OYNA</button>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
