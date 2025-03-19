@@ -51,6 +51,15 @@ const FOODS = [
 const STAR_THRESHOLDS = [100, 250, 500]; // Yıldız kazanma eşikleri
 let earnedStars = 0;
 
+// Klavye kontrolü için değişkenler
+let keysPressed = {
+    left: false,
+    right: false
+};
+const KEYBOARD_SPEED = 5; // Klavye ile hareket hızı
+let lastMouseX = 0; // Son fare pozisyonu
+let isMouseInCanvas = false; // Fare canvas içinde mi?
+
 // Oyunu başlatma
 document.getElementById('start-button').addEventListener('click', startGame);
 document.getElementById('play-again-button').addEventListener('click', startGame);
@@ -97,6 +106,14 @@ function startGame() {
     // Fare ve dokunmatik olayları
     canvas.addEventListener('mousemove', moveCharacter);
     canvas.addEventListener('touchmove', moveCharacterTouch);
+    
+    // Fare canvas içinde/dışında olayları
+    canvas.addEventListener('mouseenter', () => { isMouseInCanvas = true; });
+    canvas.addEventListener('mouseleave', () => { isMouseInCanvas = false; });
+    
+    // Klavye olayları
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
     
     // Oyun döngüsünü başlat
     requestAnimationFrame(gameLoop);
@@ -148,11 +165,12 @@ function resizeCanvas() {
 }
 
 function moveCharacter(e) {
-    // Oyun duraklatılmışsa fare hareketini göz ardı et
     if (!gameRunning || gamePaused) return;
     
     const rect = canvas.getBoundingClientRect();
-    character.x = e.clientX - rect.left - character.width / 2;
+    lastMouseX = e.clientX - rect.left;
+    
+    character.x = lastMouseX - character.width / 2;
     
     // Ekrandan çıkmasını engelle
     if (character.x < 0) character.x = 0;
@@ -166,11 +184,43 @@ function moveCharacterTouch(e) {
     
     if (e.touches.length > 0) {
         const rect = canvas.getBoundingClientRect();
-        character.x = e.touches[0].clientX - rect.left - character.width / 2;
+        lastMouseX = e.touches[0].clientX - rect.left;
+        
+        character.x = lastMouseX - character.width / 2;
         
         // Ekrandan çıkmasını engelle
         if (character.x < 0) character.x = 0;
         if (character.x + character.width > canvas.width) character.x = canvas.width - character.width;
+    }
+}
+
+// Klavye tuşları basıldığında
+function handleKeyDown(e) {
+    if (!gameRunning || gamePaused) return;
+    
+    switch(e.key) {
+        case 'ArrowLeft':
+        case 'Left':
+            keysPressed.left = true;
+            break;
+        case 'ArrowRight':
+        case 'Right':
+            keysPressed.right = true;
+            break;
+    }
+}
+
+// Klavye tuşları bırakıldığında
+function handleKeyUp(e) {
+    switch(e.key) {
+        case 'ArrowLeft':
+        case 'Left':
+            keysPressed.left = false;
+            break;
+        case 'ArrowRight':
+        case 'Right':
+            keysPressed.right = false;
+            break;
     }
 }
 
@@ -213,6 +263,18 @@ function spawnItem() {
 }
 
 function updateGame(deltaTime) {
+    // Klavye kontrolü ile karakter hareketi
+    if (keysPressed.left) {
+        character.x -= KEYBOARD_SPEED;
+        // Ekrandan çıkmasını engelle
+        if (character.x < 0) character.x = 0;
+    }
+    if (keysPressed.right) {
+        character.x += KEYBOARD_SPEED;
+        // Ekrandan çıkmasını engelle
+        if (character.x + character.width > canvas.width) character.x = canvas.width - character.width;
+    }
+    
     // İfade zamanlayıcıyı güncelle
     if (characterExpression !== EXPRESSIONS.NORMAL) {
         expressionTimer += deltaTime;
@@ -795,6 +857,10 @@ function endGame() {
     // Olayları kaldır
     canvas.removeEventListener('mousemove', moveCharacter);
     canvas.removeEventListener('touchmove', moveCharacterTouch);
+    canvas.removeEventListener('mouseenter', () => { isMouseInCanvas = true; });
+    canvas.removeEventListener('mouseleave', () => { isMouseInCanvas = false; });
+    document.removeEventListener('keydown', handleKeyDown);
+    document.removeEventListener('keyup', handleKeyUp);
 }
 
 // Pencere boyutu değiştiğinde canvas'ı yeniden boyutlandır
